@@ -6,7 +6,7 @@ class Game:
     x = 3
     y = 3
     count = 3
-    players = [[], []]
+    players = {}
     HOST = ""
     PORT = "61780"
     MODE = ""
@@ -18,7 +18,6 @@ class Game:
 
     def __init__(self):
         self.set_board()
-        return 1
 
     def set_board(self):
         self.board = [["|_|" for j in range(0, self.x)] for i in range(0, self.y)]
@@ -37,14 +36,14 @@ class Game:
             return 0
 
     def check_win(self):
-        for i in range(0, len(self.board)):
-            for j in range(0, len(self.board[i])):
+        for row in range(0, len(self.board)):
+            for column in range(0, len(self.board[i])):
                 cell = self.board[i][j]
                 if cell == "|_|":
                     score = 1
-                    for l, m in map([0, 1, 1, 0, -1, -1, 1, -1], [+1, 0, 1, -1, 0, -1, -1, 1]):
-                        for k in range(1, self.count):
-                            if cell == self.matrix[i + k * l][j + k * m]:
+                    for rowMod, columnMod in zip([0, 1, 1, 0, -1, -1, 1, -1], [+1, 0, 1, -1, 0, -1, -1, 1]):
+                        for distanceCounter in range(1, self.count):
+                            if cell == self.board[row + distanceCounter * rowMod][column + distanceCounter * columnMod]:
                                 score += 1
                         if score == self.count:
                             self.winner = cell
@@ -53,8 +52,8 @@ class Game:
                             score = 1
         return 0
 
-    def player(self, x, y):
-        self.players[self.num].append({"sym": self.sym, "board": self.board, "x": x, "y": y})
+    def player(self, num, sym):
+        self.players[self.num] = sym
         return 1
 
     def server(self):
@@ -81,53 +80,63 @@ class Game:
 
     def menu(self):
         print("""===================================================================
-        Choose game mode
+Choose game mode
 
-        1. Local
-        2. Online
-        """)
-        self.game_mode = input('Choose number: ')
-        if game_mode == 1:
+1. Local
+2. Online
+""")
+        inp = self.get_input('Choose number: ', 2)
+        if inp == 1:
             self.game_mode = "local"
-        elif game_mode == 2:
+            sym = ["O", "X"]
+            print(f"""Player 1 will use
+1. O or 2. X
+""")
+            choice = self.get_input("Enter 1 or 2: ")
+            self.player(1, sym.pop(choice - 1))
+            self player(2, sym.pop())
+            print(f"Player 1 will use {players[0]}")
+            print(f"Player 2 will use {players[1]}")
+                
+        elif inp == 2:
             self.game_mode = "online"
             print("""===================================================================
             
-            1. Host Game
-            2. Join Game
-            """)
-            if_server = input('Choose number:')
+1. Host Game
+2. Join Game
+""")
+            if_server = self.get_input('Choose number: ', 2)
             if if_server == 1:
                 self.MODE = "server"
             else:
                 self.MODE = "client"
 
-    def get_input(self):
-        check = re.compile(f"^[1-{self.count}]$")
-        input = ""
-        while input == "":
-            input = input("Enter number: ")
-            if re.match(check, input) == None:
-                input == ""
+    def get_input(self, mesg="", max=9):
+        inp = ""
+        while inp == "":
+            inp = int(input(mesg))
+            if inp in range(1, max + 1):
+                return inp
             else:
-                return int(input)
+                print("Wrong input!")
+                inp = ""
 
     def run(self):
         self.print_board()
         running = True
         self.menu()
         while running:
-            if game_mode == "local":
-                for num in [1, 2]:
-                    for player in self.players:
-                        print(f'###### Player {num} ######')
-                        user_x = self.get_input()
-                        user_y = self.get_input()
-                        self.set_cell(user_x, user_y, player["sym"])
-                        self.print_board()
+            if self.game_mode == "local":
+                for player in self.players:
+                    print(f'###### Player {num} ######')
+                    user_x = self.get_input("Enter Column number: ", self.count)
+                    user_y = self.get_input("Enter Row number: ", self.count)
+                    self.set_cell(user_x, user_y, player)
+                    self.print_board()
 
-            if self.check_win() != 0:
+            if self.check_win() == 1:
                 print("There i a winner")
+                running = False
 
 
 if __name__ == "__main__":
