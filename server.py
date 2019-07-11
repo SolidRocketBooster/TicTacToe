@@ -1,12 +1,11 @@
-import socket
-
+import socket, json
 
 class Game:
     board = []
     players = {}
     HOST = ""
-    PORT = "61780"
-
+    PORT = 61780
+    current_player = 1
 
 
     def __init__(self):
@@ -45,8 +44,9 @@ class Game:
                             score = 1
         return 0
 
-    def add_player():
-        
+    def add_player(addr, num, sym, win):
+        players[addr] = [num, sym, win]
+        return 1
 
     def server(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -56,13 +56,16 @@ class Game:
             with conn:
                 print('Connected by', addr)
                 while True:
-                    data = conn.recv(1024)
+                    data = dict(conn.recv(1024))
                     if not data:
                         break
-                    self.player()
-                    conn.sendall(self.board)
+                    elif data["type"] == "add_player":
+                        result = self.add_player(addr, data["num"], data["sym"], False)
+                    elif data["type"] == "set_cell":
+                        result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
+                    conn.sendall([self.board, result])
 
 
 if __name__ == "__main__":
     app = Game()
-    app.run()
+    app.server()
