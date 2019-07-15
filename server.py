@@ -44,8 +44,8 @@ class Game:
                             score = 1
         return 0
 
-    def add_player(addr, num, sym, win):
-        players[addr] = [num, sym, win]
+    def add_player(self, addr, num, sym, win):
+        self.players[addr] = [num, sym, win]
         return 1
 
     def server(self):
@@ -57,14 +57,17 @@ class Game:
                 with conn:
                     print('Connected by', addr)
                     while True:
-                        data = json.loads(conn.recv(1024).decode("utf-8"))
+                        result = ""
+                        data = json.JSONDecoder().decode(conn.recv(1024))
                         if not data:
                             break
-                        elif data["type"] == "add_player":
+                        elif data["type"] is "add_player":
                             result = self.add_player(addr, data["num"], data["sym"], False)
-                        elif data["type"] == "set_cell":
+                        elif data["type"] is "set_cell":
                             result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
-                        conn.sendall(json.dumps([self.board, result]).encode("utf-8"))
+                        
+                        data = json.JSONEncoder().encode([self.board, result])
+                        conn.sendall(data)
 
 
 if __name__ == "__main__":
