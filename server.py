@@ -49,21 +49,22 @@ class Game:
         return 1
 
     def server(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.HOST, self.PORT))
-            s.listen()
-            conn, addr = s.accept()
-            with conn:
-                print('Connected by', addr)
-                while True:
-                    data = dict(conn.recv(1024))
-                    if not data:
-                        break
-                    elif data["type"] == "add_player":
-                        result = self.add_player(addr, data["num"], data["sym"], False)
-                    elif data["type"] == "set_cell":
-                        result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
-                    conn.sendall([self.board, result])
+        while True:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((self.HOST, self.PORT))
+                s.listen()
+                conn, addr = s.accept()
+                with conn:
+                    print('Connected by', addr)
+                    while True:
+                        data = json.loads(conn.recv(1024).decode("utf-8"))
+                        if not data:
+                            break
+                        elif data["type"] == "add_player":
+                            result = self.add_player(addr, data["num"], data["sym"], False)
+                        elif data["type"] == "set_cell":
+                            result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
+                        conn.sendall(json.dumps([self.board, result]).encode("utf-8"))
 
 
 if __name__ == "__main__":

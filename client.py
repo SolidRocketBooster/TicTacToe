@@ -21,15 +21,17 @@ class Game:
     def client(self, msg):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.HOST, self.PORT))
-            s.sendall(msg)
-            self.board = s.recv(1024)[1]
+            payload = json.dumps(msg).encode("utf-8")
+            s.sendall(payload)
+            data = s.recv(1024)
+            self.board = json.loads(data.decode("uft-8"))
 
     def run(self):
         self.print_board()
         
         while not self.connected:
             print("Connecting...")
-            msg = bytes({"type": "add_player", "num": self.num, "sym": self.sym})
+            msg = json.dumps({"type": "add_player", "num": self.num, "sym": self.sym}).encode("utf-8")
             self.client(msg)
 
     
