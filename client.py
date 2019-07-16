@@ -29,31 +29,39 @@ class Game:
         self.board = data[0]
         return data[1]
 
-    def join(self):
+    def set_num(self):
         print("Enter a player number and sumbol that you wish to use.")
         while self.num == "":
             temp = input("Enter a player number: ")
-            if temp is [1, 2]:
+            try:
+                temp = int(temp)
+            except TypeError:
+                pass
+            if temp in [1, 2]:
                 self.num = temp
             else:
                 print("Wrong input")
+        while self.sym == "":
+            temp = input("Enter a X or O: ")
+            if temp in ["X", "O"]:
+                self.sym = temp
+            else:
+                print("Wrong input")
 
-
-
-    def run(self):
+    def join(self):
         self.print_board()
-        
+        self.set_num()
         while not self.connected:
             print("Connecting...")
             msg = {"type": "add_player", "num": self.num, "sym": self.sym}
-            print(type(msg))
             response = self.client(msg)
-            print(response)
             if response == 1:
                 self.connected = True
             else:
+                self.num = ""
+                self.sym = ""
 
-    
+
 if __name__ == "__main__":
     app = Game()
-    app.run()
+    app.join()

@@ -45,8 +45,13 @@ class Game:
         return 0
 
     def add_player(self, addr, num, sym, win):
-        self.players[addr] = [num, sym, win]
-        return 1
+        if num is self.players.keys():
+            return "Player already taken."
+            if sym in [s[1] for s in self.players.values()]:
+                return "Symbol is already taken."
+        else:
+            self.players[num] = [addr, sym, win]
+            return 1
 
     def server(self):
         try:
@@ -67,10 +72,10 @@ class Game:
                             print(type(data))
                             if data["type"] == "add_player":
                                 result = self.add_player(addr, data["num"], data["sym"], False)
-                                print("Result is " + str(result))
+                                print(f"Result is {result}")
                             elif data["type"] == "set_cell":
                                 result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
-                                print("Result is " + str(result))
+                                print(f"Result is {result}")
                         payload = json.dumps([self.board, result]).encode("utf-8")
                         print(payload)
                         conn.sendall(payload)
