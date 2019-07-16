@@ -49,25 +49,35 @@ class Game:
         return 1
 
     def server(self):
-        while True:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind((self.HOST, self.PORT))
-                s.listen()
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind((self.HOST, self.PORT))
+            s.listen()
+            while True:
                 conn, addr = s.accept()
                 with conn:
                     print('Connected by', addr)
                     while True:
                         result = ""
-                        data = json.JSONDecoder().decode(conn.recv(1024))
+                        data = json.loads(conn.recv(1024))
                         if not data:
                             break
-                        elif data["type"] is "add_player":
-                            result = self.add_player(addr, data["num"], data["sym"], False)
-                        elif data["type"] is "set_cell":
-                            result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
-                        
-                        data = json.JSONEncoder().encode([self.board, result])
-                        conn.sendall(data)
+                        else:
+                            print(data)
+                            print(type(data))
+                            if data["type"] == "add_player":
+                                result = self.add_player(addr, data["num"], data["sym"], False)
+                                print("Result is " + str(result))
+                            elif data["type"] == "set_cell":
+                                result = self.set_cell(self.board, data["x"], data["y"], data["sym"])
+                                print("Result is " + str(result))
+                        payload = json.dumps([self.board, result]).encode("utf-8")
+                        print(payload)
+                        conn.sendall(payload)
+                        break
+        except KeyboardInterrupt:
+            print("Closing server")
+            s.close()
 
 
 if __name__ == "__main__":

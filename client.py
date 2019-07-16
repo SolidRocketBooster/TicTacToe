@@ -21,21 +21,37 @@ class Game:
     def client(self, msg):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.HOST, self.PORT))
-            s.sendall(msg)
-            data = json.JSONDecoder().decode(s.recv(1024))
-            self.board = data[0]
-            return data[1]
+            payload = json.dumps(msg).encode("utf-8")
+            s.sendall(payload)
+            per_data = s.recv(1024)
+            data = json.loads(per_data)
+        print(data)
+        self.board = data[0]
+        return data[1]
+
+    def join(self):
+        print("Enter a player number and sumbol that you wish to use.")
+        while self.num == "":
+            temp = input("Enter a player number: ")
+            if temp is [1, 2]:
+                self.num = temp
+            else:
+                print("Wrong input")
+
+
 
     def run(self):
         self.print_board()
         
         while not self.connected:
             print("Connecting...")
-            msg = json.JSONEncoder().encode({"type": "add_player", "num": self.num, "sym": self.sym})
+            msg = {"type": "add_player", "num": self.num, "sym": self.sym}
             print(type(msg))
             response = self.client(msg)
+            print(response)
             if response == 1:
                 self.connected = True
+            else:
 
     
 if __name__ == "__main__":
